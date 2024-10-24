@@ -19,7 +19,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }) : super(AuthState());
 
   Future<void> loginUser(String email, String password) async {
-    await Future.delayed(const Duration(seconds: 500));
+    await Future.delayed(const Duration(milliseconds: 500));
     try {
       final user = await authRepository.login(email, password);
       _setLoggedUser(user);
@@ -67,7 +67,7 @@ enum AuthStatus { checking, authenticated, notauthenticated }
 class AuthState {
   final AuthStatus authStatus;
   final User? user;
-  final String? errorMessage;
+  final String errorMessage;
 
   AuthState({
     this.authStatus = AuthStatus.checking,
