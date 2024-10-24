@@ -63,9 +63,8 @@ class _LoginForm extends ConsumerWidget {
     final loginForm = ref.watch(loginFormProvider);
 
     ref.listen(authNotifierProvider, (previous, next) {
-      if (next.errorMessage.isEmpty) {
-        showSnackBar(context, next.errorMessage);
-      }
+      if (next.errorMessage.isEmpty) return;
+      showSnackBar(context, next.errorMessage);
     });
 
     final textStyles = Theme.of(context).textTheme;
