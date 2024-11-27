@@ -77,7 +77,7 @@ class _ProductInformation extends ConsumerWidget {
             initialValue: product.title,
           ),
           CustomProductField(
-            isTopField: true,
+            //isTopField: true,
             label: 'Slug',
             initialValue: product.slug,
           ),
@@ -128,6 +128,7 @@ class _SizeSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SegmentedButton(
+      emptySelectionAllowed: true,
       showSelectedIcon: false,
       segments: sizes.map((size) {
         return ButtonSegment(
