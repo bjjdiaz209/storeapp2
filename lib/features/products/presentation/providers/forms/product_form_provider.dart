@@ -1,7 +1,135 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:formz/formz.dart';
+import 'package:teslo_shop/config/config.dart';
+import 'package:teslo_shop/features/products/domain/entities/product.dart';
 import 'package:teslo_shop/features/shared/infrastructure/inputs/price.dart';
 import 'package:teslo_shop/features/shared/infrastructure/inputs/slug.dart';
 import 'package:teslo_shop/features/shared/infrastructure/inputs/stock.dart';
 import 'package:teslo_shop/features/shared/infrastructure/inputs/title.dart';
+
+final productFormProvider = StateNotifierProvider.autoDispose
+    .family<ProductFormNotifier, ProductFormState, Product>(
+  (ref, product) {
+    //TODO: implementar update el callback
+
+    return ProductFormNotifier(
+      product: product,
+      //TODO: implementar update el callback create callback
+    );
+  },
+);
+
+class ProductFormNotifier extends StateNotifier<ProductFormState> {
+  final void Function(Map<String, dynamic> productLike)? onSubmitCallback;
+
+  ProductFormNotifier({this.onSubmitCallback, required Product product})
+      : super(ProductFormState(
+          id: product.id,
+          title: Title.dirty(product.title),
+          slug: Slug.dirty(product.slug),
+          price: Price.dirty(product.price),
+          inStock: Stock.dirty(product.stock),
+          sizes: product.sizes,
+          gender: product.gender,
+          description: product.description,
+          tags: product.tags.join(', '),
+          images: product.images,
+        ));
+
+  Future<bool> onFormSubmit() async {
+    _touchedEverything();
+    if (!state.isFormValid) return false;
+    if (onSubmitCallback != null) return false;
+    final productLike = {
+      'id': state.id,
+      'title': state.title.value,
+      'slug': state.slug.value,
+      'price': state.price.value,
+      'description': state.description,
+      'stock': state.inStock.value,
+      'sizes': state.sizes,
+      'gender': state.gender,
+      'tags': state.tags.split(','),
+      'images': state.images
+          .map((image) =>
+              image.replaceAll('${Environment.apiUrl}/files/product', ''))
+          .toList(),
+    };
+    return true;
+    //TODO llamar submit de callback
+  }
+
+  void _touchedEverything() {
+    state = state.copyWith(
+      isFormValid: Formz.validate([
+        Title.dirty(state.title.value),
+        Slug.dirty(state.slug.value),
+        Price.dirty(state.price.value),
+        Stock.dirty(state.inStock.value),
+      ]),
+    );
+  }
+
+  void onTitleChanged(String value) {
+    state = state.copyWith(
+        title: Title.dirty(value),
+        isFormValid: Formz.validate([
+          Title.dirty(value),
+          Slug.dirty(state.slug.value),
+          Price.dirty(state.price.value),
+          Stock.dirty(state.inStock.value),
+        ]));
+  }
+
+  void onSlugChanged(String value) {
+    state = state.copyWith(
+        slug: Slug.dirty(value),
+        isFormValid: Formz.validate([
+          Title.dirty(state.title.value),
+          Slug.dirty(value),
+          Price.dirty(state.price.value),
+          Stock.dirty(state.inStock.value),
+        ]));
+  }
+
+  void onPriceChanged(double value) {
+    state = state.copyWith(
+        price: Price.dirty(value),
+        isFormValid: Formz.validate([
+          Title.dirty(state.title.value),
+          Slug.dirty(state.slug.value),
+          Price.dirty(value),
+          Stock.dirty(state.inStock.value),
+        ]));
+  }
+
+  void onStockChanged(int value) {
+    state = state.copyWith(
+        inStock: Stock.dirty(value),
+        isFormValid: Formz.validate([
+          Title.dirty(state.title.value),
+          Slug.dirty(state.slug.value),
+          Price.dirty(state.price.value),
+          Stock.dirty(value),
+        ]));
+  }
+
+  void onSizeChanged(List<String> sizes) {
+    state = state.copyWith(sizes: sizes);
+  }
+
+  void onGenderChanged(String gender) {
+    state = state.copyWith(gender: gender);
+  }
+
+  void onDescriptionChanged(String description) {
+    state = state.copyWith(description: description);
+  }
+
+  void onTagsChanged(String tags) {
+    state = state.copyWith(tags: tags);
+  }
+}
 
 class ProductFormState {
   final bool isFormValid;
