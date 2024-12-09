@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:formz/formz.dart';
 import 'package:teslo_shop/config/config.dart';
 import 'package:teslo_shop/features/products/domain/entities/product.dart';
+import 'package:teslo_shop/features/products/presentation/providers/products_repository_provider.dart';
 import 'package:teslo_shop/features/shared/infrastructure/inputs/price.dart';
 import 'package:teslo_shop/features/shared/infrastructure/inputs/slug.dart';
 import 'package:teslo_shop/features/shared/infrastructure/inputs/stock.dart';
@@ -10,17 +11,19 @@ import 'package:teslo_shop/features/shared/infrastructure/inputs/title.dart';
 final productFormProvider = StateNotifierProvider.autoDispose
     .family<ProductFormNotifier, ProductFormState, Product>(
   (ref, product) {
-    //TODO: implementar update el callback
+    final createUpdateCallback =
+        ref.watch(productsRepositoryProvider).createUpdateProduct;
 
     return ProductFormNotifier(
       product: product,
-      //TODO: implementar update el callback create callback
+      onSubmitCallback: createUpdateCallback,
     );
   },
 );
 
 class ProductFormNotifier extends StateNotifier<ProductFormState> {
-  final void Function(Map<String, dynamic> productLike)? onSubmitCallback;
+  final Future<Product> Function(Map<String, dynamic> productLike)?
+      onSubmitCallback;
 
   ProductFormNotifier({this.onSubmitCallback, required Product product})
       : super(ProductFormState(
@@ -39,6 +42,7 @@ class ProductFormNotifier extends StateNotifier<ProductFormState> {
   Future<bool> onFormSubmit() async {
     _touchedEverything();
     if (!state.isFormValid) return false;
+
     if (onSubmitCallback != null) return false;
     final productLike = {
       'id': state.id,
@@ -52,11 +56,15 @@ class ProductFormNotifier extends StateNotifier<ProductFormState> {
       'tags': state.tags.split(','),
       'images': state.images
           .map((image) =>
-              image.replaceAll('${Environment.apiUrl}/files/product', ''))
+              image.replaceAll('${Environment.apiUrl}/files/product/', ''))
           .toList(),
     };
-    return true;
-    //TODO llamar submit de callback
+    try {
+      await onSubmitCallback!(productLike);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   void _touchedEverything() {

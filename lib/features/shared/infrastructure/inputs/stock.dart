@@ -1,3 +1,5 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
+
 import 'package:formz/formz.dart';
 
 // Define input validation errors
@@ -15,7 +17,8 @@ class Stock extends FormzInput<int, StockError> {
     if (isValid || isPure) return null;
 
     if (displayError == StockError.empty) return 'El campo es requerido';
-    if (displayError == StockError.value) return 'Tiene que ser cero o mayor';
+    if (displayError == StockError.value)
+      return 'Tiene que ser un numeromayor o igual a 0';
     if (displayError == StockError.format) return 'No tiene formato el nuemero';
 
     return null;
